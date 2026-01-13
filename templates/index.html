@@ -3,115 +3,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NBA Command Center</title>
+    <title>NBA Predictor Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <style>
-        body { font-family: 'JetBrains Mono', monospace; }
-        .neon-border { box-shadow: 0 0 10px #10b981; }
-        .neon-text { text-shadow: 0 0 5px #10b981; }
+        body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; }
+        .pro-card { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
     </style>
 </head>
-<body class="bg-black text-white h-screen flex flex-col items-center justify-center p-4">
+<body class="flex h-screen overflow-hidden">
 
-    <div class="mb-8 text-center">
-        <h1 class="text-4xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500">
-            COURT VISION v1.0
-        </h1>
-        <p class="text-gray-500 text-xs tracking-[0.3em] mt-2">PREDICTIVE SPORTS ALGORITHM</p>
-    </div>
-
-    <div class="w-full max-w-2xl flex gap-4 mb-10">
-        <input type="text" id="playerInput" placeholder="ENTER PLAYER IDENTITY..." 
-            class="flex-1 bg-gray-900 border border-gray-700 text-green-400 p-4 rounded text-lg focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition">
-        <button onclick="analyzePlayer()" 
-            class="bg-green-600 hover:bg-green-500 text-black font-bold px-8 rounded transition transform active:scale-95">
-            INITIATE
-        </button>
-    </div>
-
-    <div id="dashboard" class="hidden w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="hidden md:flex flex-col w-64 bg-white border-r border-gray-200">
+        <div class="p-6 flex items-center gap-3">
+            <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold">P</div>
+            <span class="text-xl font-bold tracking-tight text-gray-800">PREDICTOR<span class="text-blue-600">PRO</span></span>
+        </div>
         
-        <div class="md:col-span-1 bg-gray-900 border border-gray-700 p-6 rounded-lg relative overflow-hidden group hover:border-green-500 transition">
-            <div class="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 text-6xl font-bold">PTS</div>
-            <p class="text-gray-400 text-xs">PROJECTED SCORE</p>
-            <h2 id="projection" class="text-6xl font-bold text-white mt-2 neon-text">--</h2>
-            <div id="statusBadge" class="mt-4 inline-block px-3 py-1 bg-gray-800 rounded text-xs text-gray-300">CALCULATING</div>
-        </div>
+        <nav class="flex-1 px-4 space-y-2 mt-4">
+            <a href="#" class="flex items-center gap-3 px-4 py-3 bg-blue-50 text-blue-700 rounded-lg font-medium">
+                <i class="fa-solid fa-chart-line"></i> Dashboard
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition">
+                <i class="fa-solid fa-basketball"></i> Player Props
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition">
+                <i class="fa-solid fa-fire"></i> Trending
+            </a>
+        </nav>
 
-        <div class="md:col-span-2 grid grid-cols-2 gap-4">
-            
-            <div class="bg-gray-800 p-4 rounded border-l-4 border-blue-500">
-                <p class="text-xs text-gray-400">LOCATION FACTOR</p>
-                <p id="location" class="text-xl font-bold">--</p>
-            </div>
-
-            <div class="bg-gray-800 p-4 rounded border-l-4 border-purple-500">
-                <p class="text-xs text-gray-400">MOMENTUM TREND</p>
-                <p id="trend" class="text-xl font-bold">--</p>
-            </div>
-
-            <div class="bg-gray-800 p-4 rounded">
-                <p class="text-xs text-gray-400">LAST 5 AVG</p>
-                <p id="avg" class="text-2xl">--</p>
-            </div>
-
-            <div class="bg-gray-800 p-4 rounded">
-                <p class="text-xs text-gray-400">CONSISTENCY (STD)</p>
-                <p id="consistency" class="text-2xl">--</p>
+        <div class="p-4 border-t border-gray-100">
+            <div class="bg-gray-900 rounded-lg p-4 text-white">
+                <p class="text-xs text-gray-400 uppercase font-bold">System Status</p>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                    <span class="text-sm font-semibold">Live & Updated</span>
+                </div>
             </div>
         </div>
     </div>
 
-    <p id="errorMsg" class="hidden mt-6 text-red-500 border border-red-500 p-3 rounded bg-red-900/20"></p>
+    <div class="flex-1 flex flex-col h-screen overflow-y-auto">
+        
+        <header class="bg-white border-b border-gray-200 p-6 flex items-center justify-between sticky top-0 z-10">
+            <div class="flex items-center gap-4 w-full max-w-2xl">
+                <div class="relative w-full">
+                    <i class="fa-solid fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="playerInput" placeholder="Search for a player (e.g. LeBron James)..." 
+                        class="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-700 font-medium">
+                </div>
+                <button onclick="analyzePlayer()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold shadow-sm transition whitespace-nowrap">
+                    Analyze
+                </button>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <button class="p-2 text-gray-400 hover:text-gray-600"><i class="fa-solid fa-bell"></i></button>
+                <div class="h-8 w-8 bg-gray-200 rounded-full"></div>
+            </div>
+        </header>
+
+        <main class="p-8">
+            
+            <div id="welcome" class="text-center py-20">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 text-blue-600 rounded-full mb-4">
+                    <i class="fa-solid fa-chart-simple text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800">Ready to Analyze</h2>
+                <p class="text-gray-500 mt-2">Search for an NBA player above to generate a Pro Report.</p>
+            </div>
+
+            <div id="dashboard" class="hidden max-w-5xl mx-auto">
+                
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h1 id="playerName" class="text-3xl font-bold text-gray-900">--</h1>
+                        <p class="text-gray-500 text-sm mt-1 flex items-center gap-2">
+                            <span class="bg-gray-200 text-gray-700 px-2 py-0.5 rounded text-xs font-bold">NBA</span>
+                            <span id="locationBadge">--</span>
+                        </p>
+                    </div>
+                    <div id="verdictBadge" class="hidden px-4 py-2 rounded-lg font-bold text-sm">--</div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                    <div class="lg:col-span-2 bg-white rounded-xl pro-card border border-gray-100 overflow-hidden">
+                        <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                            <h3 class="font-bold text-gray-700">Points Projection</h3>
+                            <span class="text-xs font-medium text-gray-400">AI MODEL v1.0</span>
+                        </div>
+                        
+                        <div class="p-6 flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500 font-medium mb-1">PROJECTED SCORE</p>
+                                <div class="flex items-baseline gap-2">
+                                    <span id="projection" class="text-5xl font-bold text-gray-900">--</span>
+                                    <span class="text-gray-400 font-medium">PTS</span>
+                                </div>
+                            </div>
+                            
+                            <div class="text-right">
+                                <p class="text-sm text-gray-500 font-medium mb-1">LAST 5 AVG</p>
+                                <p id="avg" class="text-2xl font-bold text-gray-700">--</p>
+                            </div>
+                        </div>
+
+                        <div class="px-6 pb-6">
+                            <div class="w-full bg-gray-100 rounded-full h-3 mb-2 relative">
+                                <div id="projectionBar" class="bg-blue-600 h-3 rounded-full" style="width: 50%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-400 font-medium">
+                                <span>Low Volatility</span>
+                                <span id="consistency">--</span>
+                                <span>High Volatility</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="bg-white rounded-xl pro-card border border-gray-100 p-6">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="p-2 bg-orange-100 text-orange-600 rounded-lg">
+                                    <i class="fa-solid fa-fire-flame-curved"></i>
+                                </div>
+                                <h3 class="font-bold text-gray-700">Momentum</h3>
+                            </div>
+                            <p id="trend" class="text-xl font-bold text-gray-900 mt-2">--</p>
+                            <p class="text-xs text-gray-400 mt-1">Based on last 3 games vs season avg</p>
+                        </div>
+
+                        <div class="bg-white rounded-xl pro-card border border-gray-100 p-6">
+                            <h3 class="font-bold text-gray-700 mb-4 text-sm">BEST ODDS FOUND</h3>
+                            <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-3">
+                                <span class="font-bold text-gray-500">DK</span>
+                                <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">-110</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-gray-500">FD</span>
+                                <span class="bg-gray-100 text-gray-500 px-2 py-1 rounded text-xs font-bold">-115</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 bg-white rounded-xl pro-card border border-gray-100">
+                    <div class="px-6 py-4 border-b border-gray-100">
+                        <h3 class="font-bold text-gray-700">Recent Performance Context</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="p-4 bg-gray-50 rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase">Matchup</p>
+                                <p id="locationText" class="font-bold text-gray-800">--</p>
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase">Last Game</p>
+                                <p id="lastGame" class="font-bold text-gray-800">--</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
 
     <script>
         async function analyzePlayer() {
             const name = document.getElementById('playerInput').value;
             const dashboard = document.getElementById('dashboard');
-            const errorMsg = document.getElementById('errorMsg');
+            const welcome = document.getElementById('welcome');
             
-            // Reset
-            errorMsg.classList.add('hidden');
-            dashboard.classList.add('hidden');
-
             if(!name) return;
 
+            // Show loading state implies professional system
+            document.querySelector('button').innerText = "Processing...";
+            
             try {
                 const response = await fetch('/analyze/' + name);
                 const data = await response.json();
 
                 if(data.error) {
-                    errorMsg.innerText = "SYSTEM ERROR: " + data.error;
-                    errorMsg.classList.remove('hidden');
+                    alert("Player not found or inactive.");
+                    document.querySelector('button').innerText = "Analyze";
                     return;
                 }
 
-                // Populate Data
-                document.getElementById('projection').innerText = data.projection;
-                document.getElementById('location').innerText = data.location;
-                document.getElementById('trend').innerText = data.trend;
-                document.getElementById('avg').innerText = data.avg_last_5;
-                document.getElementById('consistency').innerText = "±" + data.consistency;
+                // Hide welcome, show dashboard
+                welcome.classList.add('hidden');
+                dashboard.classList.remove('hidden');
 
-                // Dynamic Styling for Status
-                const statusBadge = document.getElementById('statusBadge');
+                // Populate Data
+                document.getElementById('playerName').innerText = data.player;
+                document.getElementById('projection').innerText = data.projection;
+                document.getElementById('avg').innerText = data.avg_last_5;
+                document.getElementById('consistency').innerText = "Std Dev: ±" + data.consistency;
+                document.getElementById('trend').innerText = data.trend;
+                document.getElementById('lastGame').innerText = data.last_game_pts + " PTS";
+                
+                // Smart Badges
+                const locBadge = document.getElementById('locationBadge');
+                locBadge.innerText = data.location;
+                document.getElementById('locationText').innerText = data.location;
+
+                // Verdict Logic & Styling
+                const verdict = document.getElementById('verdictBadge');
+                verdict.classList.remove('hidden');
+                
                 if(data.status === "SAFE") {
-                    statusBadge.innerText = "VERDICT: SAFE BET";
-                    statusBadge.className = "mt-4 inline-block px-3 py-1 bg-green-900 text-green-300 rounded text-xs font-bold border border-green-500";
-                    document.getElementById('projection').classList.add('text-green-400');
-                    document.getElementById('projection').classList.remove('text-red-400');
+                    verdict.innerText = "OVER / SAFE PICK";
+                    verdict.className = "bg-green-100 text-green-700 px-4 py-2 rounded-lg font-bold text-sm border border-green-200";
+                    document.getElementById('projection').classList.add('text-green-600');
+                    document.getElementById('projectionBar').className = "bg-green-500 h-3 rounded-full";
+                    document.getElementById('projectionBar').style.width = "75%";
                 } else {
-                    statusBadge.innerText = "VERDICT: HIGH RISK";
-                    statusBadge.className = "mt-4 inline-block px-3 py-1 bg-red-900 text-red-300 rounded text-xs font-bold border border-red-500";
-                    document.getElementById('projection').classList.add('text-red-400');
-                    document.getElementById('projection').classList.remove('text-green-400');
+                    verdict.innerText = "UNDER / RISKY";
+                    verdict.className = "bg-amber-100 text-amber-700 px-4 py-2 rounded-lg font-bold text-sm border border-amber-200";
+                    document.getElementById('projection').classList.add('text-gray-900');
+                    document.getElementById('projectionBar').className = "bg-amber-500 h-3 rounded-full";
+                    document.getElementById('projectionBar').style.width = "40%";
                 }
 
-                dashboard.classList.remove('hidden');
+                document.querySelector('button').innerText = "Analyze";
 
             } catch (err) {
                 console.error(err);
+                document.querySelector('button').innerText = "Analyze";
             }
         }
     </script>
