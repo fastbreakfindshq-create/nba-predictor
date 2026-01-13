@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NBA Deep Dive System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white font-mono">
+
+    <div class="container mx-auto mt-20 max-w-lg p-6 border border-gray-700 rounded-lg shadow-2xl">
+        <h1 class="text-3xl font-bold text-center mb-2 text-green-400">SYSTEM ACTIVE</h1>
+        <p class="text-center text-gray-400 text-sm mb-6">Enter target for analysis...</p>
+
+        <div class="flex gap-2">
+            <input type="text" id="playerInput" placeholder="e.g. LeBron James" 
+                class="w-full p-3 rounded bg-gray-800 border border-gray-600 focus:border-green-500 focus:outline-none text-white">
+            <button onclick="analyzePlayer()" 
+                class="bg-green-600 hover:bg-green-500 text-black font-bold py-3 px-6 rounded transition">
+                RUN
+            </button>
+        </div>
+
+        <div id="resultBox" class="hidden mt-8 p-4 bg-gray-800 rounded border-l-4 border-green-500">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="playerName" class="text-xl font-bold uppercase">Player Name</h2>
+                <span id="systemStatus" class="px-3 py-1 text-xs font-bold rounded bg-green-900 text-green-300">SAFE</span>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 text-center">
+                <div class="bg-gray-700 p-3 rounded">
+                    <p class="text-xs text-gray-400">LAST 5 AVG</p>
+                    <p id="avgPoints" class="text-2xl font-bold">0.0</p>
+                </div>
+                <div class="bg-gray-700 p-3 rounded">
+                    <p class="text-xs text-gray-400">LAST GAME</p>
+                    <p id="lastGame" class="text-2xl font-bold">0</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        async function analyzePlayer() {
+            const name = document.getElementById('playerInput').value;
+            const resultBox = document.getElementById('resultBox');
+            
+            if(!name) return;
+
+            // Use the API we built in Step 2
+            const response = await fetch('/analyze/' + name);
+            const data = await response.json();
+
+            if(data.error) {
+                alert("Player not found in database.");
+                return;
+            }
+
+            // Update the HTML with the data
+            document.getElementById('playerName').innerText = data.player;
+            document.getElementById('avgPoints').innerText = data.average_pts_last_5;
+            document.getElementById('lastGame').innerText = data.last_game_pts;
+            
+            // Logic for the Status Badge
+            const statusBadge = document.getElementById('systemStatus');
+            if(data.status === "Safe") {
+                statusBadge.innerText = "SAFE";
+                statusBadge.className = "px-3 py-1 text-xs font-bold rounded bg-green-900 text-green-300";
+                resultBox.classList.replace('border-red-500', 'border-green-500');
+            } else {
+                statusBadge.innerText = "RISK DETECTED";
+                statusBadge.className = "px-3 py-1 text-xs font-bold rounded bg-red-900 text-red-300";
+                resultBox.classList.replace('border-green-500', 'border-red-500');
+            }
+
+            // Show the box
+            resultBox.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
