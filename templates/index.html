@@ -3,79 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NBA Deep Dive System</title>
+    <title>NBA Command Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'JetBrains Mono', monospace; }
+        .neon-border { box-shadow: 0 0 10px #10b981; }
+        .neon-text { text-shadow: 0 0 5px #10b981; }
+    </style>
 </head>
-<body class="bg-gray-900 text-white font-mono">
+<body class="bg-black text-white h-screen flex flex-col items-center justify-center p-4">
 
-    <div class="container mx-auto mt-20 max-w-lg p-6 border border-gray-700 rounded-lg shadow-2xl">
-        <h1 class="text-3xl font-bold text-center mb-2 text-green-400">SYSTEM ACTIVE</h1>
-        <p class="text-center text-gray-400 text-sm mb-6">Enter target for analysis...</p>
-
-        <div class="flex gap-2">
-            <input type="text" id="playerInput" placeholder="e.g. LeBron James" 
-                class="w-full p-3 rounded bg-gray-800 border border-gray-600 focus:border-green-500 focus:outline-none text-white">
-            <button onclick="analyzePlayer()" 
-                class="bg-green-600 hover:bg-green-500 text-black font-bold py-3 px-6 rounded transition">
-                RUN
-            </button>
-        </div>
-
-        <div id="resultBox" class="hidden mt-8 p-4 bg-gray-800 rounded border-l-4 border-green-500">
-            <div class="flex justify-between items-center mb-4">
-                <h2 id="playerName" class="text-xl font-bold uppercase">Player Name</h2>
-                <span id="systemStatus" class="px-3 py-1 text-xs font-bold rounded bg-green-900 text-green-300">SAFE</span>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4 text-center">
-                <div class="bg-gray-700 p-3 rounded">
-                    <p class="text-xs text-gray-400">LAST 5 AVG</p>
-                    <p id="avgPoints" class="text-2xl font-bold">0.0</p>
-                </div>
-                <div class="bg-gray-700 p-3 rounded">
-                    <p class="text-xs text-gray-400">LAST GAME</p>
-                    <p id="lastGame" class="text-2xl font-bold">0</p>
-                </div>
-            </div>
-        </div>
-
+    <div class="mb-8 text-center">
+        <h1 class="text-4xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500">
+            COURT VISION v1.0
+        </h1>
+        <p class="text-gray-500 text-xs tracking-[0.3em] mt-2">PREDICTIVE SPORTS ALGORITHM</p>
     </div>
+
+    <div class="w-full max-w-2xl flex gap-4 mb-10">
+        <input type="text" id="playerInput" placeholder="ENTER PLAYER IDENTITY..." 
+            class="flex-1 bg-gray-900 border border-gray-700 text-green-400 p-4 rounded text-lg focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition">
+        <button onclick="analyzePlayer()" 
+            class="bg-green-600 hover:bg-green-500 text-black font-bold px-8 rounded transition transform active:scale-95">
+            INITIATE
+        </button>
+    </div>
+
+    <div id="dashboard" class="hidden w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <div class="md:col-span-1 bg-gray-900 border border-gray-700 p-6 rounded-lg relative overflow-hidden group hover:border-green-500 transition">
+            <div class="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 text-6xl font-bold">PTS</div>
+            <p class="text-gray-400 text-xs">PROJECTED SCORE</p>
+            <h2 id="projection" class="text-6xl font-bold text-white mt-2 neon-text">--</h2>
+            <div id="statusBadge" class="mt-4 inline-block px-3 py-1 bg-gray-800 rounded text-xs text-gray-300">CALCULATING</div>
+        </div>
+
+        <div class="md:col-span-2 grid grid-cols-2 gap-4">
+            
+            <div class="bg-gray-800 p-4 rounded border-l-4 border-blue-500">
+                <p class="text-xs text-gray-400">LOCATION FACTOR</p>
+                <p id="location" class="text-xl font-bold">--</p>
+            </div>
+
+            <div class="bg-gray-800 p-4 rounded border-l-4 border-purple-500">
+                <p class="text-xs text-gray-400">MOMENTUM TREND</p>
+                <p id="trend" class="text-xl font-bold">--</p>
+            </div>
+
+            <div class="bg-gray-800 p-4 rounded">
+                <p class="text-xs text-gray-400">LAST 5 AVG</p>
+                <p id="avg" class="text-2xl">--</p>
+            </div>
+
+            <div class="bg-gray-800 p-4 rounded">
+                <p class="text-xs text-gray-400">CONSISTENCY (STD)</p>
+                <p id="consistency" class="text-2xl">--</p>
+            </div>
+        </div>
+    </div>
+
+    <p id="errorMsg" class="hidden mt-6 text-red-500 border border-red-500 p-3 rounded bg-red-900/20"></p>
 
     <script>
         async function analyzePlayer() {
             const name = document.getElementById('playerInput').value;
-            const resultBox = document.getElementById('resultBox');
+            const dashboard = document.getElementById('dashboard');
+            const errorMsg = document.getElementById('errorMsg');
             
+            // Reset
+            errorMsg.classList.add('hidden');
+            dashboard.classList.add('hidden');
+
             if(!name) return;
 
-            // Use the API we built in Step 2
-            const response = await fetch('/analyze/' + name);
-            const data = await response.json();
+            try {
+                const response = await fetch('/analyze/' + name);
+                const data = await response.json();
 
-            if(data.error) {
-                alert("Player not found in database.");
-                return;
+                if(data.error) {
+                    errorMsg.innerText = "SYSTEM ERROR: " + data.error;
+                    errorMsg.classList.remove('hidden');
+                    return;
+                }
+
+                // Populate Data
+                document.getElementById('projection').innerText = data.projection;
+                document.getElementById('location').innerText = data.location;
+                document.getElementById('trend').innerText = data.trend;
+                document.getElementById('avg').innerText = data.avg_last_5;
+                document.getElementById('consistency').innerText = "±" + data.consistency;
+
+                // Dynamic Styling for Status
+                const statusBadge = document.getElementById('statusBadge');
+                if(data.status === "SAFE") {
+                    statusBadge.innerText = "VERDICT: SAFE BET";
+                    statusBadge.className = "mt-4 inline-block px-3 py-1 bg-green-900 text-green-300 rounded text-xs font-bold border border-green-500";
+                    document.getElementById('projection').classList.add('text-green-400');
+                    document.getElementById('projection').classList.remove('text-red-400');
+                } else {
+                    statusBadge.innerText = "VERDICT: HIGH RISK";
+                    statusBadge.className = "mt-4 inline-block px-3 py-1 bg-red-900 text-red-300 rounded text-xs font-bold border border-red-500";
+                    document.getElementById('projection').classList.add('text-red-400');
+                    document.getElementById('projection').classList.remove('text-green-400');
+                }
+
+                dashboard.classList.remove('hidden');
+
+            } catch (err) {
+                console.error(err);
             }
-
-            // Update the HTML with the data
-            document.getElementById('playerName').innerText = data.player;
-            document.getElementById('avgPoints').innerText = data.average_pts_last_5;
-            document.getElementById('lastGame').innerText = data.last_game_pts;
-            
-            // Logic for the Status Badge
-            const statusBadge = document.getElementById('systemStatus');
-            if(data.status === "Safe") {
-                statusBadge.innerText = "SAFE";
-                statusBadge.className = "px-3 py-1 text-xs font-bold rounded bg-green-900 text-green-300";
-                resultBox.classList.replace('border-red-500', 'border-green-500');
-            } else {
-                statusBadge.innerText = "RISK DETECTED";
-                statusBadge.className = "px-3 py-1 text-xs font-bold rounded bg-red-900 text-red-300";
-                resultBox.classList.replace('border-green-500', 'border-red-500');
-            }
-
-            // Show the box
-            resultBox.classList.remove('hidden');
         }
     </script>
 </body>
